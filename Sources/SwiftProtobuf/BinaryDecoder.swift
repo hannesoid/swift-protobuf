@@ -54,6 +54,7 @@ public struct BinaryDecoder: Decoder {
 
     @usableFromInline internal var complete: Bool { available == 0 }
 
+    @inlinable
     internal init(
         forReadingFrom pointer: UnsafeRawPointer,
         count: Int,
@@ -69,7 +70,8 @@ public struct BinaryDecoder: Decoder {
         recursionBudget = options.messageDepthLimit
     }
 
-    @usableFromInline internal init(
+    @inlinable
+    internal init(
         forReadingFrom pointer: UnsafeRawPointer,
         count: Int,
         parent: BinaryDecoder
@@ -83,6 +85,7 @@ public struct BinaryDecoder: Decoder {
         recursionBudget = parent.recursionBudget
     }
 
+    @inlinable
     @usableFromInline internal mutating func incrementRecursionDepth() throws {
         recursionBudget -= 1
         if recursionBudget < 0 {
@@ -90,6 +93,7 @@ public struct BinaryDecoder: Decoder {
         }
     }
 
+    @inlinable
     @usableFromInline internal mutating func decrementRecursionDepth() {
         recursionBudget += 1
         // This should never happen, if it does, something is probably corrupting memory, and
@@ -297,6 +301,7 @@ public struct BinaryDecoder: Decoder {
         }
     }
 
+    @inlinable
     public mutating func decodeSingularInt32Field(value: inout Int32) throws {
         guard fieldWireFormat == WireFormat.varint else {
             return
@@ -337,6 +342,7 @@ public struct BinaryDecoder: Decoder {
         }
     }
 
+    @inlinable
     public mutating func decodeSingularInt64Field(value: inout Int64) throws {
         guard fieldWireFormat == WireFormat.varint else {
             return
@@ -377,6 +383,7 @@ public struct BinaryDecoder: Decoder {
         }
     }
 
+    @inlinable
     public mutating func decodeSingularUInt32Field(value: inout UInt32) throws {
         guard fieldWireFormat == WireFormat.varint else {
             return
@@ -417,6 +424,7 @@ public struct BinaryDecoder: Decoder {
         }
     }
 
+    @inlinable
     public mutating func decodeSingularUInt64Field(value: inout UInt64) throws {
         guard fieldWireFormat == WireFormat.varint else {
             return
@@ -679,6 +687,7 @@ public struct BinaryDecoder: Decoder {
         }
     }
 
+    @inlinable
     public mutating func decodeSingularBoolField(value: inout Bool) throws {
         guard fieldWireFormat == WireFormat.varint else {
             return
@@ -717,6 +726,7 @@ public struct BinaryDecoder: Decoder {
         }
     }
 
+    @inlinable
     public mutating func decodeSingularStringField(value: inout String) throws {
         guard fieldWireFormat == WireFormat.lengthDelimited else {
             return
@@ -761,6 +771,7 @@ public struct BinaryDecoder: Decoder {
         }
     }
 
+    @inlinable
     public mutating func decodeSingularBytesField(value: inout Data) throws {
         guard fieldWireFormat == WireFormat.lengthDelimited else {
             return
@@ -1318,7 +1329,8 @@ public struct BinaryDecoder: Decoder {
     //
 
     /// Private:  Advance the current position.
-    private mutating func consume(length: Int) {
+    @inlinable
+    @usableFromInline internal mutating func consume(length: Int) {
         available -= length
         p += length
     }
@@ -1398,6 +1410,7 @@ public struct BinaryDecoder: Decoder {
     }
 
     /// Private: Parse the next raw varint from the input.
+    @inlinable
     @usableFromInline internal mutating func decodeVarint() throws -> UInt64 {
         if available < 1 {
             throw BinaryDecodingError.truncated
@@ -1487,6 +1500,7 @@ public struct BinaryDecoder: Decoder {
 
     /// Private: Get the start and length for the body of
     /// a length-delimited field.
+    @inlinable
     @usableFromInline internal mutating func getFieldBodyBytes(count: inout Int) throws -> UnsafeRawPointer {
         let length = try decodeVarint()
 

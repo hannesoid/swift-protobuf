@@ -81,7 +81,7 @@ internal func utf8ToString(
 // On Linux, the Foundation initializer is much
 // slower than on macOS, so this is a much bigger
 // win there.
-internal func utf8ToString(bytes: UnsafeRawPointer, count: Int) -> String? {
+@usableFromInline internal func utf8ToString(bytes: UnsafeRawPointer, count: Int) -> String? {
     if count == 0 {
         return String()
     }
