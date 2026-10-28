@@ -21,38 +21,38 @@ import FoundationEssentials
 import Foundation
 #endif
 
-internal struct BinaryDecoder: Decoder {
+public struct BinaryDecoder: Decoder {
     // Current position
-    private var p: UnsafeRawPointer
+    @usableFromInline internal var p: UnsafeRawPointer
     // Remaining bytes in input.
-    private var available: Int
+    @usableFromInline internal var available: Int
     // Position of start of field currently being parsed
-    private var fieldStartP: UnsafeRawPointer
+    @usableFromInline internal var fieldStartP: UnsafeRawPointer
     // Position of end of field currently being parsed, nil if we don't know.
-    private var fieldEndP: UnsafeRawPointer?
+    @usableFromInline internal var fieldEndP: UnsafeRawPointer?
     // Whether or not the field value  has actually been parsed
-    private var consumed = true
+    @usableFromInline internal var consumed = true
     // Wire format for last-examined field
-    internal var fieldWireFormat = WireFormat.varint
+    @usableFromInline internal var fieldWireFormat = WireFormat.varint
     // Field number for last-parsed field tag
-    private var fieldNumber: Int = 0
+    @usableFromInline internal var fieldNumber: Int = 0
     // Collection of extension fields for this decode
-    private var extensions: (any ExtensionMap)?
+    @usableFromInline internal var extensions: (any ExtensionMap)?
     // The current group number. See decodeFullGroup(group:fieldNumber:) for how
     // this is used.
-    private var groupFieldNumber: Int?
+    @usableFromInline internal var groupFieldNumber: Int?
     // The options for decoding.
-    private var options: BinaryDecodingOptions
+    @usableFromInline internal var options: BinaryDecodingOptions
 
-    private var recursionBudget: Int
+    @usableFromInline internal var recursionBudget: Int
 
     // Collects the unknown data found while decoding a message.
-    private var unknownData: Data?
+    @usableFromInline internal var unknownData: Data?
     // Custom data to use as the unknown data while parsing a field. Used only by
     // packed repeated enums; see below
-    private var unknownOverride: Data?
+    @usableFromInline internal var unknownOverride: Data?
 
-    private var complete: Bool { available == 0 }
+    @usableFromInline internal var complete: Bool { available == 0 }
 
     internal init(
         forReadingFrom pointer: UnsafeRawPointer,
@@ -69,7 +69,7 @@ internal struct BinaryDecoder: Decoder {
         recursionBudget = options.messageDepthLimit
     }
 
-    internal init(
+    @usableFromInline internal init(
         forReadingFrom pointer: UnsafeRawPointer,
         count: Int,
         parent: BinaryDecoder
@@ -83,14 +83,14 @@ internal struct BinaryDecoder: Decoder {
         recursionBudget = parent.recursionBudget
     }
 
-    private mutating func incrementRecursionDepth() throws {
+    @usableFromInline internal mutating func incrementRecursionDepth() throws {
         recursionBudget -= 1
         if recursionBudget < 0 {
             throw BinaryDecodingError.messageDepthLimit
         }
     }
 
-    private mutating func decrementRecursionDepth() {
+    @usableFromInline internal mutating func decrementRecursionDepth() {
         recursionBudget += 1
         // This should never happen, if it does, something is probably corrupting memory, and
         // simply throwing doesn't make much sense.
@@ -99,12 +99,12 @@ internal struct BinaryDecoder: Decoder {
         }
     }
 
-    internal mutating func handleConflictingOneOf() throws {
+    public mutating func handleConflictingOneOf() throws {
         /// Protobuf simply allows conflicting oneof values to overwrite
     }
 
     /// Return the next field number or nil if there are no more fields.
-    internal mutating func nextFieldNumber() throws -> Int? {
+    public mutating func nextFieldNumber() throws -> Int? {
         // Since this is called for every field, I've taken some pains
         // to optimize it, including unrolling a tweaked version of
         // the varint parser.
@@ -214,7 +214,7 @@ internal struct BinaryDecoder: Decoder {
         throw BinaryDecodingError.malformedProtobuf
     }
 
-    internal mutating func decodeSingularFloatField(value: inout Float) throws {
+    public mutating func decodeSingularFloatField(value: inout Float) throws {
         guard fieldWireFormat == WireFormat.fixed32 else {
             return
         }
@@ -222,7 +222,7 @@ internal struct BinaryDecoder: Decoder {
         consumed = true
     }
 
-    internal mutating func decodeSingularFloatField(value: inout Float?) throws {
+    public mutating func decodeSingularFloatField(value: inout Float?) throws {
         guard fieldWireFormat == WireFormat.fixed32 else {
             return
         }
@@ -230,7 +230,7 @@ internal struct BinaryDecoder: Decoder {
         consumed = true
     }
 
-    internal mutating func decodeRepeatedFloatField(value: inout [Float]) throws {
+    public mutating func decodeRepeatedFloatField(value: inout [Float]) throws {
         switch fieldWireFormat {
         case WireFormat.fixed32:
             let i = try decodeFloat()
@@ -255,7 +255,7 @@ internal struct BinaryDecoder: Decoder {
         }
     }
 
-    internal mutating func decodeSingularDoubleField(value: inout Double) throws {
+    public mutating func decodeSingularDoubleField(value: inout Double) throws {
         guard fieldWireFormat == WireFormat.fixed64 else {
             return
         }
@@ -263,7 +263,7 @@ internal struct BinaryDecoder: Decoder {
         consumed = true
     }
 
-    internal mutating func decodeSingularDoubleField(value: inout Double?) throws {
+    public mutating func decodeSingularDoubleField(value: inout Double?) throws {
         guard fieldWireFormat == WireFormat.fixed64 else {
             return
         }
@@ -271,7 +271,7 @@ internal struct BinaryDecoder: Decoder {
         consumed = true
     }
 
-    internal mutating func decodeRepeatedDoubleField(value: inout [Double]) throws {
+    public mutating func decodeRepeatedDoubleField(value: inout [Double]) throws {
         switch fieldWireFormat {
         case WireFormat.fixed64:
             let i = try decodeDouble()
@@ -297,7 +297,7 @@ internal struct BinaryDecoder: Decoder {
         }
     }
 
-    internal mutating func decodeSingularInt32Field(value: inout Int32) throws {
+    public mutating func decodeSingularInt32Field(value: inout Int32) throws {
         guard fieldWireFormat == WireFormat.varint else {
             return
         }
@@ -306,7 +306,7 @@ internal struct BinaryDecoder: Decoder {
         consumed = true
     }
 
-    internal mutating func decodeSingularInt32Field(value: inout Int32?) throws {
+    public mutating func decodeSingularInt32Field(value: inout Int32?) throws {
         guard fieldWireFormat == WireFormat.varint else {
             return
         }
@@ -315,7 +315,7 @@ internal struct BinaryDecoder: Decoder {
         consumed = true
     }
 
-    internal mutating func decodeRepeatedInt32Field(value: inout [Int32]) throws {
+    public mutating func decodeRepeatedInt32Field(value: inout [Int32]) throws {
         switch fieldWireFormat {
         case WireFormat.varint:
             let varint = try decodeVarint()
@@ -337,7 +337,7 @@ internal struct BinaryDecoder: Decoder {
         }
     }
 
-    internal mutating func decodeSingularInt64Field(value: inout Int64) throws {
+    public mutating func decodeSingularInt64Field(value: inout Int64) throws {
         guard fieldWireFormat == WireFormat.varint else {
             return
         }
@@ -346,7 +346,7 @@ internal struct BinaryDecoder: Decoder {
         consumed = true
     }
 
-    internal mutating func decodeSingularInt64Field(value: inout Int64?) throws {
+    public mutating func decodeSingularInt64Field(value: inout Int64?) throws {
         guard fieldWireFormat == WireFormat.varint else {
             return
         }
@@ -355,7 +355,7 @@ internal struct BinaryDecoder: Decoder {
         consumed = true
     }
 
-    internal mutating func decodeRepeatedInt64Field(value: inout [Int64]) throws {
+    public mutating func decodeRepeatedInt64Field(value: inout [Int64]) throws {
         switch fieldWireFormat {
         case WireFormat.varint:
             let varint = try decodeVarint()
@@ -377,7 +377,7 @@ internal struct BinaryDecoder: Decoder {
         }
     }
 
-    internal mutating func decodeSingularUInt32Field(value: inout UInt32) throws {
+    public mutating func decodeSingularUInt32Field(value: inout UInt32) throws {
         guard fieldWireFormat == WireFormat.varint else {
             return
         }
@@ -386,7 +386,7 @@ internal struct BinaryDecoder: Decoder {
         consumed = true
     }
 
-    internal mutating func decodeSingularUInt32Field(value: inout UInt32?) throws {
+    public mutating func decodeSingularUInt32Field(value: inout UInt32?) throws {
         guard fieldWireFormat == WireFormat.varint else {
             return
         }
@@ -395,7 +395,7 @@ internal struct BinaryDecoder: Decoder {
         consumed = true
     }
 
-    internal mutating func decodeRepeatedUInt32Field(value: inout [UInt32]) throws {
+    public mutating func decodeRepeatedUInt32Field(value: inout [UInt32]) throws {
         switch fieldWireFormat {
         case WireFormat.varint:
             let varint = try decodeVarint()
@@ -417,7 +417,7 @@ internal struct BinaryDecoder: Decoder {
         }
     }
 
-    internal mutating func decodeSingularUInt64Field(value: inout UInt64) throws {
+    public mutating func decodeSingularUInt64Field(value: inout UInt64) throws {
         guard fieldWireFormat == WireFormat.varint else {
             return
         }
@@ -425,7 +425,7 @@ internal struct BinaryDecoder: Decoder {
         consumed = true
     }
 
-    internal mutating func decodeSingularUInt64Field(value: inout UInt64?) throws {
+    public mutating func decodeSingularUInt64Field(value: inout UInt64?) throws {
         guard fieldWireFormat == WireFormat.varint else {
             return
         }
@@ -433,7 +433,7 @@ internal struct BinaryDecoder: Decoder {
         consumed = true
     }
 
-    internal mutating func decodeRepeatedUInt64Field(value: inout [UInt64]) throws {
+    public mutating func decodeRepeatedUInt64Field(value: inout [UInt64]) throws {
         switch fieldWireFormat {
         case WireFormat.varint:
             let varint = try decodeVarint()
@@ -455,7 +455,7 @@ internal struct BinaryDecoder: Decoder {
         }
     }
 
-    internal mutating func decodeSingularSInt32Field(value: inout Int32) throws {
+    public mutating func decodeSingularSInt32Field(value: inout Int32) throws {
         guard fieldWireFormat == WireFormat.varint else {
             return
         }
@@ -465,7 +465,7 @@ internal struct BinaryDecoder: Decoder {
         consumed = true
     }
 
-    internal mutating func decodeSingularSInt32Field(value: inout Int32?) throws {
+    public mutating func decodeSingularSInt32Field(value: inout Int32?) throws {
         guard fieldWireFormat == WireFormat.varint else {
             return
         }
@@ -475,7 +475,7 @@ internal struct BinaryDecoder: Decoder {
         consumed = true
     }
 
-    internal mutating func decodeRepeatedSInt32Field(value: inout [Int32]) throws {
+    public mutating func decodeRepeatedSInt32Field(value: inout [Int32]) throws {
         switch fieldWireFormat {
         case WireFormat.varint:
             let varint = try decodeVarint()
@@ -499,7 +499,7 @@ internal struct BinaryDecoder: Decoder {
         }
     }
 
-    internal mutating func decodeSingularSInt64Field(value: inout Int64) throws {
+    public mutating func decodeSingularSInt64Field(value: inout Int64) throws {
         guard fieldWireFormat == WireFormat.varint else {
             return
         }
@@ -508,7 +508,7 @@ internal struct BinaryDecoder: Decoder {
         consumed = true
     }
 
-    internal mutating func decodeSingularSInt64Field(value: inout Int64?) throws {
+    public mutating func decodeSingularSInt64Field(value: inout Int64?) throws {
         guard fieldWireFormat == WireFormat.varint else {
             return
         }
@@ -517,7 +517,7 @@ internal struct BinaryDecoder: Decoder {
         consumed = true
     }
 
-    internal mutating func decodeRepeatedSInt64Field(value: inout [Int64]) throws {
+    public mutating func decodeRepeatedSInt64Field(value: inout [Int64]) throws {
         switch fieldWireFormat {
         case WireFormat.varint:
             let varint = try decodeVarint()
@@ -539,7 +539,7 @@ internal struct BinaryDecoder: Decoder {
         }
     }
 
-    internal mutating func decodeSingularFixed32Field(value: inout UInt32) throws {
+    public mutating func decodeSingularFixed32Field(value: inout UInt32) throws {
         guard fieldWireFormat == WireFormat.fixed32 else {
             return
         }
@@ -547,7 +547,7 @@ internal struct BinaryDecoder: Decoder {
         consumed = true
     }
 
-    internal mutating func decodeSingularFixed32Field(value: inout UInt32?) throws {
+    public mutating func decodeSingularFixed32Field(value: inout UInt32?) throws {
         guard fieldWireFormat == WireFormat.fixed32 else {
             return
         }
@@ -555,7 +555,7 @@ internal struct BinaryDecoder: Decoder {
         consumed = true
     }
 
-    internal mutating func decodeRepeatedFixed32Field(value: inout [UInt32]) throws {
+    public mutating func decodeRepeatedFixed32Field(value: inout [UInt32]) throws {
         switch fieldWireFormat {
         case WireFormat.fixed32:
             value.append(try decodeLittleEndianInteger())
@@ -574,7 +574,7 @@ internal struct BinaryDecoder: Decoder {
         }
     }
 
-    internal mutating func decodeSingularFixed64Field(value: inout UInt64) throws {
+    public mutating func decodeSingularFixed64Field(value: inout UInt64) throws {
         guard fieldWireFormat == WireFormat.fixed64 else {
             return
         }
@@ -582,7 +582,7 @@ internal struct BinaryDecoder: Decoder {
         consumed = true
     }
 
-    internal mutating func decodeSingularFixed64Field(value: inout UInt64?) throws {
+    public mutating func decodeSingularFixed64Field(value: inout UInt64?) throws {
         guard fieldWireFormat == WireFormat.fixed64 else {
             return
         }
@@ -590,7 +590,7 @@ internal struct BinaryDecoder: Decoder {
         consumed = true
     }
 
-    internal mutating func decodeRepeatedFixed64Field(value: inout [UInt64]) throws {
+    public mutating func decodeRepeatedFixed64Field(value: inout [UInt64]) throws {
         switch fieldWireFormat {
         case WireFormat.fixed64:
             value.append(try decodeLittleEndianInteger())
@@ -609,7 +609,7 @@ internal struct BinaryDecoder: Decoder {
         }
     }
 
-    internal mutating func decodeSingularSFixed32Field(value: inout Int32) throws {
+    public mutating func decodeSingularSFixed32Field(value: inout Int32) throws {
         guard fieldWireFormat == WireFormat.fixed32 else {
             return
         }
@@ -617,7 +617,7 @@ internal struct BinaryDecoder: Decoder {
         consumed = true
     }
 
-    internal mutating func decodeSingularSFixed32Field(value: inout Int32?) throws {
+    public mutating func decodeSingularSFixed32Field(value: inout Int32?) throws {
         guard fieldWireFormat == WireFormat.fixed32 else {
             return
         }
@@ -625,7 +625,7 @@ internal struct BinaryDecoder: Decoder {
         consumed = true
     }
 
-    internal mutating func decodeRepeatedSFixed32Field(value: inout [Int32]) throws {
+    public mutating func decodeRepeatedSFixed32Field(value: inout [Int32]) throws {
         switch fieldWireFormat {
         case WireFormat.fixed32:
             value.append(try decodeLittleEndianInteger())
@@ -644,7 +644,7 @@ internal struct BinaryDecoder: Decoder {
         }
     }
 
-    internal mutating func decodeSingularSFixed64Field(value: inout Int64) throws {
+    public mutating func decodeSingularSFixed64Field(value: inout Int64) throws {
         guard fieldWireFormat == WireFormat.fixed64 else {
             return
         }
@@ -652,7 +652,7 @@ internal struct BinaryDecoder: Decoder {
         consumed = true
     }
 
-    internal mutating func decodeSingularSFixed64Field(value: inout Int64?) throws {
+    public mutating func decodeSingularSFixed64Field(value: inout Int64?) throws {
         guard fieldWireFormat == WireFormat.fixed64 else {
             return
         }
@@ -660,7 +660,7 @@ internal struct BinaryDecoder: Decoder {
         consumed = true
     }
 
-    internal mutating func decodeRepeatedSFixed64Field(value: inout [Int64]) throws {
+    public mutating func decodeRepeatedSFixed64Field(value: inout [Int64]) throws {
         switch fieldWireFormat {
         case WireFormat.fixed64:
             value.append(try decodeLittleEndianInteger())
@@ -679,7 +679,7 @@ internal struct BinaryDecoder: Decoder {
         }
     }
 
-    internal mutating func decodeSingularBoolField(value: inout Bool) throws {
+    public mutating func decodeSingularBoolField(value: inout Bool) throws {
         guard fieldWireFormat == WireFormat.varint else {
             return
         }
@@ -687,7 +687,7 @@ internal struct BinaryDecoder: Decoder {
         consumed = true
     }
 
-    internal mutating func decodeSingularBoolField(value: inout Bool?) throws {
+    public mutating func decodeSingularBoolField(value: inout Bool?) throws {
         guard fieldWireFormat == WireFormat.varint else {
             return
         }
@@ -695,7 +695,7 @@ internal struct BinaryDecoder: Decoder {
         consumed = true
     }
 
-    internal mutating func decodeRepeatedBoolField(value: inout [Bool]) throws {
+    public mutating func decodeRepeatedBoolField(value: inout [Bool]) throws {
         switch fieldWireFormat {
         case WireFormat.varint:
             let varint = try decodeVarint()
@@ -717,7 +717,7 @@ internal struct BinaryDecoder: Decoder {
         }
     }
 
-    internal mutating func decodeSingularStringField(value: inout String) throws {
+    public mutating func decodeSingularStringField(value: inout String) throws {
         guard fieldWireFormat == WireFormat.lengthDelimited else {
             return
         }
@@ -731,7 +731,7 @@ internal struct BinaryDecoder: Decoder {
         }
     }
 
-    internal mutating func decodeSingularStringField(value: inout String?) throws {
+    public mutating func decodeSingularStringField(value: inout String?) throws {
         guard fieldWireFormat == WireFormat.lengthDelimited else {
             return
         }
@@ -745,7 +745,7 @@ internal struct BinaryDecoder: Decoder {
         }
     }
 
-    internal mutating func decodeRepeatedStringField(value: inout [String]) throws {
+    public mutating func decodeRepeatedStringField(value: inout [String]) throws {
         switch fieldWireFormat {
         case WireFormat.lengthDelimited:
             var n: Int = 0
@@ -761,7 +761,7 @@ internal struct BinaryDecoder: Decoder {
         }
     }
 
-    internal mutating func decodeSingularBytesField(value: inout Data) throws {
+    public mutating func decodeSingularBytesField(value: inout Data) throws {
         guard fieldWireFormat == WireFormat.lengthDelimited else {
             return
         }
@@ -771,7 +771,7 @@ internal struct BinaryDecoder: Decoder {
         consumed = true
     }
 
-    internal mutating func decodeSingularBytesField(value: inout Data?) throws {
+    public mutating func decodeSingularBytesField(value: inout Data?) throws {
         guard fieldWireFormat == WireFormat.lengthDelimited else {
             return
         }
@@ -781,7 +781,7 @@ internal struct BinaryDecoder: Decoder {
         consumed = true
     }
 
-    internal mutating func decodeRepeatedBytesField(value: inout [Data]) throws {
+    public mutating func decodeRepeatedBytesField(value: inout [Data]) throws {
         switch fieldWireFormat {
         case WireFormat.lengthDelimited:
             var n: Int = 0
@@ -793,7 +793,8 @@ internal struct BinaryDecoder: Decoder {
         }
     }
 
-    internal mutating func decodeSingularEnumField<E: Enum>(value: inout E?) throws where E.RawValue == Int {
+    @inlinable
+    public mutating func decodeSingularEnumField<E: Enum>(value: inout E?) throws where E.RawValue == Int {
         guard fieldWireFormat == WireFormat.varint else {
             return
         }
@@ -804,7 +805,8 @@ internal struct BinaryDecoder: Decoder {
         }
     }
 
-    internal mutating func decodeSingularEnumField<E: Enum>(value: inout E) throws where E.RawValue == Int {
+    @inlinable
+    public mutating func decodeSingularEnumField<E: Enum>(value: inout E) throws where E.RawValue == Int {
         guard fieldWireFormat == WireFormat.varint else {
             return
         }
@@ -815,7 +817,7 @@ internal struct BinaryDecoder: Decoder {
         }
     }
 
-    internal mutating func decodeRepeatedEnumField<E: Enum>(value: inout [E]) throws where E.RawValue == Int {
+    public mutating func decodeRepeatedEnumField<E: Enum>(value: inout [E]) throws where E.RawValue == Int {
         switch fieldWireFormat {
         case WireFormat.varint:
             let varint = try decodeVarint()
@@ -864,7 +866,8 @@ internal struct BinaryDecoder: Decoder {
         }
     }
 
-    internal mutating func decodeSingularMessageField<M: Message>(value: inout M?) throws {
+    @inlinable
+    public mutating func decodeSingularMessageField<M: Message>(value: inout M?) throws {
         guard fieldWireFormat == WireFormat.lengthDelimited else {
             return
         }
@@ -878,7 +881,8 @@ internal struct BinaryDecoder: Decoder {
         consumed = true
     }
 
-    internal mutating func decodeRepeatedMessageField<M: Message>(value: inout [M]) throws {
+    @inlinable
+    public mutating func decodeRepeatedMessageField<M: Message>(value: inout [M]) throws {
         guard fieldWireFormat == WireFormat.lengthDelimited else {
             return
         }
@@ -891,7 +895,8 @@ internal struct BinaryDecoder: Decoder {
         consumed = true
     }
 
-    internal mutating func decodeFullMessage<M: Message>(message: inout M) throws {
+    @inlinable
+    public mutating func decodeFullMessage<M: Message>(message: inout M) throws {
         assert(unknownData == nil)
         try incrementRecursionDepth()
         try message.decodeMessage(decoder: &self)
@@ -904,7 +909,7 @@ internal struct BinaryDecoder: Decoder {
         }
     }
 
-    internal mutating func decodeSingularGroupField<G: Message>(value: inout G?) throws {
+    public mutating func decodeSingularGroupField<G: Message>(value: inout G?) throws {
         var group = value ?? G()
         if try decodeFullGroup(group: &group, fieldNumber: fieldNumber) {
             value = group
@@ -912,7 +917,7 @@ internal struct BinaryDecoder: Decoder {
         }
     }
 
-    internal mutating func decodeRepeatedGroupField<G: Message>(value: inout [G]) throws {
+    public mutating func decodeRepeatedGroupField<G: Message>(value: inout [G]) throws {
         var group = G()
         if try decodeFullGroup(group: &group, fieldNumber: fieldNumber) {
             value.append(group)
@@ -954,7 +959,7 @@ internal struct BinaryDecoder: Decoder {
         return true
     }
 
-    internal mutating func decodeMapField<KeyType, ValueType: MapValueType>(
+    public mutating func decodeMapField<KeyType, ValueType: MapValueType>(
         fieldType: _ProtobufMap<KeyType, ValueType>.Type,
         value: inout _ProtobufMap<KeyType, ValueType>.BaseType
     ) throws {
@@ -999,7 +1004,7 @@ internal struct BinaryDecoder: Decoder {
         consumed = true
     }
 
-    internal mutating func decodeMapField<KeyType, ValueType>(
+    public mutating func decodeMapField<KeyType, ValueType>(
         fieldType: _ProtobufEnumMap<KeyType, ValueType>.Type,
         value: inout _ProtobufEnumMap<KeyType, ValueType>.BaseType
     ) throws where ValueType.RawValue == Int {
@@ -1049,7 +1054,7 @@ internal struct BinaryDecoder: Decoder {
         consumed = true
     }
 
-    internal mutating func decodeMapField<KeyType, ValueType>(
+    public mutating func decodeMapField<KeyType, ValueType>(
         fieldType: _ProtobufMessageMap<KeyType, ValueType>.Type,
         value: inout _ProtobufMessageMap<KeyType, ValueType>.BaseType
     ) throws {
@@ -1091,7 +1096,7 @@ internal struct BinaryDecoder: Decoder {
         consumed = true
     }
 
-    internal mutating func decodeExtensionField(
+    public mutating func decodeExtensionField(
         values: inout ExtensionFieldValueSet,
         messageType: any Message.Type,
         fieldNumber: Int
@@ -1134,7 +1139,7 @@ internal struct BinaryDecoder: Decoder {
         }
     }
 
-    internal mutating func decodeExtensionFieldsAsMessageSet(
+    public mutating func decodeExtensionFieldsAsMessageSet(
         values: inout ExtensionFieldValueSet,
         messageType: any Message.Type
     ) throws {
@@ -1393,7 +1398,7 @@ internal struct BinaryDecoder: Decoder {
     }
 
     /// Private: Parse the next raw varint from the input.
-    private mutating func decodeVarint() throws -> UInt64 {
+    @usableFromInline internal mutating func decodeVarint() throws -> UInt64 {
         if available < 1 {
             throw BinaryDecodingError.truncated
         }
@@ -1482,7 +1487,7 @@ internal struct BinaryDecoder: Decoder {
 
     /// Private: Get the start and length for the body of
     /// a length-delimited field.
-    private mutating func getFieldBodyBytes(count: inout Int) throws -> UnsafeRawPointer {
+    @usableFromInline internal mutating func getFieldBodyBytes(count: inout Int) throws -> UnsafeRawPointer {
         let length = try decodeVarint()
 
         // Bytes and Strings have a max size of 2GB. And since messages are on

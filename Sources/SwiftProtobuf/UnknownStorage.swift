@@ -33,7 +33,7 @@ public struct UnknownStorage: Equatable, Sendable {
 
     public init() {}
 
-    package mutating func append(protobufData: Data) {
+    @usableFromInline package mutating func append(protobufData: Data) {
         data.append(protobufData)
     }
 
